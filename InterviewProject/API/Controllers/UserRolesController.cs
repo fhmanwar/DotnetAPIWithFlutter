@@ -44,39 +44,45 @@ namespace API.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    if (getUserVM.Session == 0)
+                    var getRoleId = _context.Roles.SingleOrDefault(x => x.RoleName == getUserVM.RoleName);
+                    var usr = new User
                     {
-                        return BadRequest("Session ID must be filled");
-                    }
-                    var getSession = _context.Users.SingleOrDefault(x => x.Id == getUserVM.Session);
-                    if (getSession != null)
-                    {
-                        var user = new UserVM
-                        {
-                            Email = getUserVM.Email,
-                            Password = getUserVM.Password,
-                            VerifyCode = null,
-                        };
-                        var create = _repo.Create(user);
-                        if (create > 0)
-                        {
-                            var getUserId = getUser.SingleOrDefault();
-                            var getRoleId = _context.Roles.SingleOrDefault(x => x.RoleName == getUserVM.RoleName);
-                            var usr = new User
-                            {
-                                Id = getUserId.Id,
-                                Name = getUserVM.Name,
-                                CreateDate = DateTimeOffset.Now,
-                                isDelete = false
-                            };
-                            _context.Users.Add(usr);
-                            _context.SaveChanges();
+                        Name = getUserVM.Name,
+                        Email = getUserVM.Email,
+                        Password = Bcrypt.HashPassword(getUserVM.Password),
+                        RoleId = getRoleId.RoleId,
+                        VerifyCode = null,
+                        CreateDate = DateTimeOffset.Now,
+                        isDelete = false
+                    };
+                    _context.Users.Add(usr);
+                    _context.SaveChanges();
 
-                            return Ok("Successfully Created");
-                        }
-                        return BadRequest("Input User Not Successfully");
-                    }
-                    return BadRequest("You Don't Have access");
+                    return Ok("Successfully Created");
+                    //if (getUserVM.Session == 0)
+                    //{
+                    //    return BadRequest("Session ID must be filled");
+                    //}
+                    //var getSession = _context.Users.SingleOrDefault(x => x.Id == getUserVM.Session);
+                    //if (getSession != null)
+                    //{
+                    //    var getRoleId = _context.Roles.SingleOrDefault(x => x.RoleName == getUserVM.RoleName);
+                    //    var usr = new User
+                    //    {
+                    //        Name = getUserVM.Name,
+                    //        Email = getUserVM.Email,
+                    //        Password = getUserVM.Password,
+                    //        RoleId = getRoleId.RoleId,
+                    //        VerifyCode = null,
+                    //        CreateDate = DateTimeOffset.Now,
+                    //        isDelete = false
+                    //    };
+                    //    _context.Users.Add(usr);
+                    //    _context.SaveChanges();
+
+                    //    return Ok("Successfully Created");
+                    //}
+                    //return BadRequest("You Don't Have access");
                 }
                 return BadRequest("Not Successfully");
             }
@@ -88,34 +94,53 @@ namespace API.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (dataVM.Session == 0)
+                var getData = _context.Users.Include("Role").SingleOrDefault(x => x.Id == id);
+                getData.Name = dataVM.Name;
+                getData.Email = dataVM.Email;
+                if (dataVM.Password != null)
                 {
-                    return BadRequest("Session ID must be filled");
+                    if (!Bcrypt.Verify(dataVM.Password, getData.Password))
+                    {
+                        getData.Password = Bcrypt.HashPassword(dataVM.Password);
+                    }
                 }
-                var getSession = _context.Users.SingleOrDefault(x => x.Id == dataVM.Session);
-                if (getSession != null)
+                if (dataVM.RoleName != null)
                 {
-                    var getData = _context.Users.Include("Role").SingleOrDefault(x => x.Id == id);
-                    getData.Name = dataVM.Name;
-                    getData.Email = dataVM.Email;
-                    if (dataVM.Password != null)
-                    {
-                        if (!Bcrypt.Verify(dataVM.Password, getData.Password))
-                        {
-                            getData.Password = Bcrypt.HashPassword(dataVM.Password);
-                        }
-                    }
-                    if (dataVM.RoleName != null)
-                    {
-                        var getRoleID = _context.Roles.SingleOrDefault(x => x.RoleName == dataVM.RoleName);
-                        getData.RoleId = getRoleID.RoleId;
-                    }
-                    _context.Users.Update(getData);
-                    _context.SaveChanges();
+                    var getRoleID = _context.Roles.SingleOrDefault(x => x.RoleName == dataVM.RoleName);
+                    getData.RoleId = getRoleID.RoleId;
+                }
+                _context.Users.Update(getData);
+                _context.SaveChanges();
 
-                    return Ok("Successfully Updated");
-                }
-                return BadRequest("You Don't Have access");
+                return Ok("Successfully Updated");
+                //if (dataVM.Session == 0)
+                //{
+                //    return BadRequest("Session ID must be filled");
+                //}
+                //var getSession = _context.Users.SingleOrDefault(x => x.Id == dataVM.Session);
+                //if (getSession != null)
+                //{
+                //    var getData = _context.Users.Include("Role").SingleOrDefault(x => x.Id == id);
+                //    getData.Name = dataVM.Name;
+                //    getData.Email = dataVM.Email;
+                //    if (dataVM.Password != null)
+                //    {
+                //        if (!Bcrypt.Verify(dataVM.Password, getData.Password))
+                //        {
+                //            getData.Password = Bcrypt.HashPassword(dataVM.Password);
+                //        }
+                //    }
+                //    if (dataVM.RoleName != null)
+                //    {
+                //        var getRoleID = _context.Roles.SingleOrDefault(x => x.RoleName == dataVM.RoleName);
+                //        getData.RoleId = getRoleID.RoleId;
+                //    }
+                //    _context.Users.Update(getData);
+                //    _context.SaveChanges();
+
+                //    return Ok("Successfully Updated");
+                //}
+                //return BadRequest("You Don't Have access");
             }
             return BadRequest("Not Successfully");
         }
@@ -165,26 +190,33 @@ namespace API.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (dataVM.Session == 0)
+                var role = new Role
                 {
-                    return BadRequest("Session ID must be filled");
-                }
-                var getSession = _context.Users.SingleOrDefault(x => x.Id == dataVM.Session);
-                if (getSession != null)
-                {
-                    var role = new RoleVM
-                    {
-                        Name = dataVM.Name
-                    };
-                    var create = _repo.Create(role);
-                    if (create > 0)
-                    {
-                        return Ok("Successfully Created");
-                    }
-                    return BadRequest("Not Successfully");
-                }
-                return BadRequest("You Don't Have Access");
-
+                    RoleName = dataVM.Name,
+                    CreateDate = DateTimeOffset.Now,
+                    isDelete = false
+                };
+                _context.Roles.Add(role);
+                _context.SaveChanges();
+                return Ok("Successfully Created");
+                //if (dataVM.Session == 0)
+                //{
+                //    return BadRequest("Session ID must be filled");
+                //}
+                //var getSession = _context.Users.SingleOrDefault(x => x.Id == dataVM.Session);
+                //if (getSession != null)
+                //{
+                //    var role = new Role
+                //    {
+                //        RoleName = dataVM.Name,
+                //        CreateDate = DateTimeOffset.Now,
+                //        isDelete = false
+                //    };
+                //    _context.Roles.Add(role);
+                //    _context.SaveChanges();
+                //    return Ok("Successfully Created");
+                //}
+                //return BadRequest("You Don't Have Access");
             }
             return BadRequest("Not Successfully");
         }
@@ -194,23 +226,31 @@ namespace API.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (dataVM.Session == 0)
-                {
-                    return BadRequest("Session ID must be filled");
-                }
-                var getSession = _context.Users.SingleOrDefault(x => x.Id == dataVM.Session);
-                if (getSession != null)
-                {
-                    var getData = _context.Roles.SingleOrDefault(x => x.RoleId == id);
-                    getData.RoleName = dataVM.Name;
-                    getData.UpdateDate = DateTimeOffset.Now;
+                var getData = _context.Roles.SingleOrDefault(x => x.RoleId == id);
+                getData.RoleName = dataVM.Name;
+                getData.UpdateDate = DateTimeOffset.Now;
 
-                    _context.Roles.Update(getData);
-                    _context.SaveChanges();
+                _context.Roles.Update(getData);
+                _context.SaveChanges();
 
-                    return Ok("Successfully Updated");
-                }
-                return BadRequest("You Don't Have Access");
+                return Ok("Successfully Updated");
+                //if (dataVM.Session == 0)
+                //{
+                //    return BadRequest("Session ID must be filled");
+                //}
+                //var getSession = _context.Users.SingleOrDefault(x => x.Id == dataVM.Session);
+                //if (getSession != null)
+                //{
+                //    var getData = _context.Roles.SingleOrDefault(x => x.RoleId == id);
+                //    getData.RoleName = dataVM.Name;
+                //    getData.UpdateDate = DateTimeOffset.Now;
+
+                //    _context.Roles.Update(getData);
+                //    _context.SaveChanges();
+
+                //    return Ok("Successfully Updated");
+                //}
+                //return BadRequest("You Don't Have Access");
             }
             return BadRequest("Not Successfully");
         }

@@ -7,72 +7,68 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
-using Bcrypt = BCrypt.Net.BCrypt;
 
 namespace API.Repository
 {
-    public class RoleRepository
+    public class ProductCategoryRepo
     {
         IConfiguration _configuration;
         DynamicParameters parameters = new DynamicParameters();
-        public RoleRepository(IConfiguration configuration)
+        public ProductCategoryRepo(IConfiguration configuration)
         {
             _configuration = configuration;
         }
 
-        public async Task<IEnumerable<GetRoleVM>> getAll()
+        public async Task<IEnumerable<CategoryProductVM>> getAll()
         {
             using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("myConn")))
             {
-                var procName = "SP_Role_GetAll";
-                var getAll = await connection.QueryAsync<GetRoleVM>(procName, commandType: CommandType.StoredProcedure);
+                var procName = "SP_CategoryProduct_GetAll";
+                var getAll = await connection.QueryAsync<CategoryProductVM>(procName, commandType: CommandType.StoredProcedure);
                 return getAll;
             }
         }
 
-        public GetRoleVM getID(int id)
+        public CategoryProductVM getID(int id)
         {
             using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("myConn")))
             {
-                var procName = "SP_Role_GetID";
+                var procName = "SP_CategoryProduct_GetID";
                 parameters.Add("id", id);
-                var getId = connection.Query<GetRoleVM>(procName, parameters, commandType: CommandType.StoredProcedure).SingleOrDefault();
+                var getId = connection.Query<CategoryProductVM>(procName, parameters, commandType: CommandType.StoredProcedure).SingleOrDefault();
                 return getId;
             }
         }
-
     }
 
-    public class UserRepository
+    public class ProductRepo
     {
         IConfiguration _configuration;
         DynamicParameters parameters = new DynamicParameters();
-        public UserRepository(IConfiguration configuration)
+        public ProductRepo(IConfiguration configuration)
         {
             _configuration = configuration;
         }
 
-        public async Task<IEnumerable<GetUserVM>> getAll()
+        public async Task<IEnumerable<ProductVM>> getAll()
         {
             using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("myConn")))
             {
-                var procName = "SP_User_GetAll";
-                var getAll = await connection.QueryAsync<GetUserVM>(procName, commandType: CommandType.StoredProcedure);
+                var procName = "SP_Product_GetAll";
+                var getAll = await connection.QueryAsync<ProductVM>(procName, commandType: CommandType.StoredProcedure);
                 return getAll;
             }
         }
 
-        public GetUserVM getID(int id)
+        public ProductVM getID(int id)
         {
             using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("myConn")))
             {
-                var procName = "SP_User_GetID";
+                var procName = "SP_Product_GetID";
                 parameters.Add("id", id);
-                var getId = connection.Query<GetUserVM>(procName, parameters, commandType: CommandType.StoredProcedure).SingleOrDefault();
+                var getId = connection.Query<ProductVM>(procName, parameters, commandType: CommandType.StoredProcedure).SingleOrDefault();
                 return getId;
             }
         }
-
-
     }
 }

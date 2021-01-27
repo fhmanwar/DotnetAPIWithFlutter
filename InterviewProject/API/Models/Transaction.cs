@@ -12,7 +12,11 @@ namespace API.Models
     {
         [Key]
         public int TransactionId { get; set; }
+        [ForeignKey("User")]
+        public int UserId { get; set; }
         public DateTimeOffset OrderDate { get; set; }
         public int Total { get; set; }
+
+        public User User { get; set; }
     }
 }

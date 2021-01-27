@@ -44,20 +44,20 @@ namespace API.Controllers
 
         [HttpPost]
         [Route("Login")]
-        public IActionResult Login(UserVM userVM)
+        public IActionResult Login(GetUserVM getUserVM)
         {
             if (ModelState.IsValid)
             {
-                var getData = _context.Users.Include("Role").SingleOrDefault(x => x.Email == userVM.Email);
+                var getData = _context.Users.Include("Role").SingleOrDefault(x => x.Email == getUserVM.Email);
                 if (getData == null)
                 {
                     return NotFound("Email Not Found");
                 }
-                else if (userVM.Password == null || userVM.Password.Equals(""))
+                else if (getUserVM.Password == null || getUserVM.Password.Equals(""))
                 {
                     return BadRequest("Password must filled");
                 }
-                else if (!Bcrypt.Verify(userVM.Password, getData.Password))
+                else if (!Bcrypt.Verify(getUserVM.Password, getData.Password))
                 {
                     return BadRequest("Password is Wrong");
                 }
@@ -83,203 +83,32 @@ namespace API.Controllers
 
         [HttpPost]
         [Route("Register")]
-        public IActionResult Register(UserVM userVM)
+        public IActionResult Register(GetUserVM getUserVM)
         {
-            var getUser = _context.Users.Where(x => x.Email == userVM.Email);
+            var getUser = _context.Users.Where(x => x.Email == getUserVM.Email);
             if (getUser.Count() == 0)
             {
                 if (ModelState.IsValid)
                 {
-                    var code = randDig.GenerateRandom();
-                    var fill = "Hi " + userVM.Name + "\n\n"
-                              + "Please verifty Code for this Apps : \n"
-                              + code
-                              + "\n\nThank You";
-
-                    MailMessage mm = new MailMessage("donotreply@domain.com", userVM.Email, "Register Email", fill);
-                    mm.BodyEncoding = UTF8Encoding.UTF8;
-                    mm.DeliveryNotificationOptions = DeliveryNotificationOptions.OnFailure;
-                    string str1 = "gmail.com";
-                    string str2 = attrEmail.mail;
-
-                    if (str2.Contains(str1))
+                    var checkRole = _context.Roles.SingleOrDefault(x => x.RoleName == "User");
+                    var usr = new User
                     {
-                        try
-                        {
-                            client.Port = 587;
-                            client.Host = "smtp.gmail.com";
-                            client.EnableSsl = true;
-                            client.Timeout = 10000;
-                            client.DeliveryMethod = SmtpDeliveryMethod.Network;
-                            client.UseDefaultCredentials = false;
-                            client.Credentials = new NetworkCredential(attrEmail.mail, attrEmail.pass);
-                            client.Send(mm);
-                        }
-                        catch (Exception ex)
-                        {
-                            return BadRequest("SMTP Gmail Error " + ex);
-                        }
-                    }
-                    else
-                    {
-                        try
-                        {
-                            client.Port = 25;
-                            client.Credentials = new NetworkCredential(attrEmail.mail, attrEmail.pass);
-                            client.EnableSsl = false;
-                            client.Send(mm);
-                        }
-                        catch (Exception ex)
-                        {
-                            return BadRequest("SMTP Email Error " + ex);
-                        }
-                    }
-
-                    var user = new UserVM
-                    {
-                        Email = userVM.Email,
-                        Password = userVM.Password,
-                        VerifyCode = code,
+                        Name = getUserVM.Name,
+                        Email = getUserVM.Email,
+                        Password = Bcrypt.HashPassword(getUserVM.Password),
+                        RoleId = checkRole.RoleId,
+                        VerifyCode = null,
+                        CreateDate = DateTimeOffset.Now,
+                        isDelete = false
                     };
-                    var create = _repo.Create(user);
-                    if (create > 0)
-                    {
-                        var getUserId = getUser.SingleOrDefault();
-                        var checkRole = _context.Roles.SingleOrDefault(x => x.RoleName == "Employee");
-                        var usr = new User
-                        {
-                            Id = getUserId.Id,
-                            Name = userVM.Name,
-                            RoleId = checkRole.RoleId,
-                            CreateDate = DateTimeOffset.Now,
-                            isDelete = false
-                        };
-                        _context.Users.Add(usr);
-                        _context.SaveChanges();
+                    _context.Users.Add(usr);
+                    _context.SaveChanges();
 
-                        return Ok("Successfully Created");
-                    }
-                    return BadRequest("Register Not Successfully");
+                    return Ok("Successfully Created");
                 }
-                return BadRequest("Not Successfully");
+                return BadRequest("Register Not Successfully");
             }
             return BadRequest("Email Already Exists ");
-        }
-
-        [HttpPost]
-        [Route("Forgot")]
-        public async Task<IActionResult> Forgot(ForgotVM forgotVM)
-        {
-            var getUser = _context.Users.Include("Employee").Where(x => x.Email == forgotVM.Email);
-            var cekCount = getUser.Count();
-            if (cekCount != 0)
-            {
-                if (ModelState.IsValid)
-                {
-                    var getUserId = await getUser.SingleOrDefaultAsync();
-                    var code = randDig.GenerateRandom();
-
-                    var encode = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(forgotVM)));
-                    var link = baseURL.UsrManage + "reset?token="+encode;
-
-                    var fill = "Hi " + getUserId.Name + "\n\n"
-                              + "Click this link for Reset Password : \n"
-                              + "<a href=" + link + ">Reset Password</a>"
-                              + "\n\nThank You";
-
-                    MailMessage mm = new MailMessage("donotreply@domain.com", forgotVM.Email, "Forgot Password ", fill);
-                    mm.BodyEncoding = UTF8Encoding.UTF8;
-                    mm.DeliveryNotificationOptions = DeliveryNotificationOptions.OnFailure;
-                    string str1 = "gmail.com";
-                    string str2 = attrEmail.mail;
-
-                    if (str2.Contains(str1))
-                    {
-                        try
-                        {
-                            client.Port = 587;
-                            client.Host = "smtp.gmail.com";
-                            client.EnableSsl = true;
-                            client.Timeout = 10000;
-                            client.DeliveryMethod = SmtpDeliveryMethod.Network;
-                            client.UseDefaultCredentials = false;
-                            client.Credentials = new NetworkCredential(attrEmail.mail, attrEmail.pass);
-                            client.Send(mm);
-                        }
-                        catch (Exception ex)
-                        {
-                            return BadRequest("SMTP Gmail Error " + ex);
-                        }
-                    }
-                    else if (!str2.Contains(str1))
-                    {
-                        try
-                        {
-                            client.Port = 25;
-                            client.Credentials = new NetworkCredential(attrEmail.mail, attrEmail.pass);
-                            client.EnableSsl = false;
-                            client.Send(mm);
-                        }
-                        catch (Exception ex)
-                        {
-                            return BadRequest("SMTP Email Error " + ex);
-                        }
-                    }
-                    var user = new UserVM
-                    {
-                        Email = forgotVM.Email,
-                        Password = null,
-                        Token = encode,
-                    };
-                    var create = _repo.Update(user, getUserId.Id);
-                    if (create > 0)
-                    {
-                        return Ok("Please check your email");
-                    }
-                }
-                return BadRequest("Not Successfully");
-            }
-            return BadRequest("Email Doesn't Exists ");
-        }
-
-        [HttpPost]
-        [Route("Reset")]
-        public async Task<IActionResult> Reset(string token, ForgotVM forgotVM)
-        {
-            var getToken = _context.Users.Where(x => x.Token == token);
-            var tokenCount = getToken.Count();
-            if (tokenCount > 0)
-            {
-                var getdecode = WebEncoders.Base64UrlDecode(token);
-                var getString = Encoding.UTF8.GetString(getdecode);
-                var getDObj = JsonConvert.DeserializeObject<ForgotVM>(getString);
-                var decode = JsonConvert.DeserializeObject<ForgotVM>(Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token)));
-                var getUser = _context.Users.Include("Employee").Where(x => x.Email == decode.Email);
-                var cekCount = getUser.Count();
-                if (cekCount == 1)
-                {
-                    if (ModelState.IsValid)
-                    {
-                        var getUserId = await getUser.SingleOrDefaultAsync();
-                    
-                        var user = new UserVM
-                        {
-                            Email = decode.Email,
-                            Password = Bcrypt.HashPassword(forgotVM.Password),
-                            Token = null,
-                        };
-                        var create = _repo.Update(user,getUserId.Id);
-                        if (create > 0)
-                        {
-                            return Ok("Reset Password Successfully");
-                        }
-                        return BadRequest("Reset Password Not Successfully");
-                    }
-                    return BadRequest("Something wrong");
-                }
-                return BadRequest("Email Doesn't Exists ");
-            }
-            return BadRequest("Token Doesn't Exists ");
         }
 
         public string GetJWT(UserVM dataVM)
