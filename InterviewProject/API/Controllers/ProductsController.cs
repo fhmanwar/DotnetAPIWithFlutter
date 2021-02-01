@@ -6,6 +6,7 @@ using API.Context;
 using API.Models;
 using API.Repository;
 using API.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,7 @@ namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public class CategorysController : ControllerBase
     {
         private readonly MyContext _context;
@@ -75,7 +77,6 @@ namespace API.Controllers
                 return BadRequest("Not Successfully");
             }
 
-            //_context.Entry(getData).State = EntityState.Modified;
             _context.Categories.Remove(getData);
             _context.SaveChanges();
             return Ok(new { msg = "Successfully Delete" });
@@ -84,6 +85,7 @@ namespace API.Controllers
 
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public class ProductsController : ControllerBase
     {
         private readonly MyContext _context;

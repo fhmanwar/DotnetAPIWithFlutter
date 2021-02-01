@@ -6,6 +6,7 @@ using API.Context;
 using API.Models;
 using API.Repository;
 using API.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,7 @@ namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize(AuthenticationSchemes = "Bearer")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public class UsersController : ControllerBase
     {
         private readonly MyContext _context;
@@ -59,30 +60,6 @@ namespace API.Controllers
                     _context.SaveChanges();
 
                     return Ok("Successfully Created");
-                    //if (getUserVM.Session == 0)
-                    //{
-                    //    return BadRequest("Session ID must be filled");
-                    //}
-                    //var getSession = _context.Users.SingleOrDefault(x => x.Id == getUserVM.Session);
-                    //if (getSession != null)
-                    //{
-                    //    var getRoleId = _context.Roles.SingleOrDefault(x => x.RoleName == getUserVM.RoleName);
-                    //    var usr = new User
-                    //    {
-                    //        Name = getUserVM.Name,
-                    //        Email = getUserVM.Email,
-                    //        Password = getUserVM.Password,
-                    //        RoleId = getRoleId.RoleId,
-                    //        VerifyCode = null,
-                    //        CreateDate = DateTimeOffset.Now,
-                    //        isDelete = false
-                    //    };
-                    //    _context.Users.Add(usr);
-                    //    _context.SaveChanges();
-
-                    //    return Ok("Successfully Created");
-                    //}
-                    //return BadRequest("You Don't Have access");
                 }
                 return BadRequest("Not Successfully");
             }
@@ -113,34 +90,6 @@ namespace API.Controllers
                 _context.SaveChanges();
 
                 return Ok("Successfully Updated");
-                //if (dataVM.Session == 0)
-                //{
-                //    return BadRequest("Session ID must be filled");
-                //}
-                //var getSession = _context.Users.SingleOrDefault(x => x.Id == dataVM.Session);
-                //if (getSession != null)
-                //{
-                //    var getData = _context.Users.Include("Role").SingleOrDefault(x => x.Id == id);
-                //    getData.Name = dataVM.Name;
-                //    getData.Email = dataVM.Email;
-                //    if (dataVM.Password != null)
-                //    {
-                //        if (!Bcrypt.Verify(dataVM.Password, getData.Password))
-                //        {
-                //            getData.Password = Bcrypt.HashPassword(dataVM.Password);
-                //        }
-                //    }
-                //    if (dataVM.RoleName != null)
-                //    {
-                //        var getRoleID = _context.Roles.SingleOrDefault(x => x.RoleName == dataVM.RoleName);
-                //        getData.RoleId = getRoleID.RoleId;
-                //    }
-                //    _context.Users.Update(getData);
-                //    _context.SaveChanges();
-
-                //    return Ok("Successfully Updated");
-                //}
-                //return BadRequest("You Don't Have access");
             }
             return BadRequest("Not Successfully");
         }
@@ -165,7 +114,7 @@ namespace API.Controllers
 
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize(AuthenticationSchemes = "Bearer")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public class RolesController : ControllerBase
     {
         private readonly MyContext _context;

@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121. 
+-->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TimeStampOfAssociatedLegacyPublishXmlFile />
+    <_PublishTargetUrl>D:\Apps\publishASPNET\API\tes</_PublishTargetUrl>
+  </PropertyGroup>
+  <ItemGroup>
+    <DestinationConnectionStrings Include="myConn">
+      <Value>Data Source=SQL5054.site4now.net%3bInitial Catalog=DB_A6E898_store%3bUser Id=DB_A6E898_store_admin%3bPassword=asdqwe123</Value>
+    </DestinationConnectionStrings>
+  </ItemGroup>
+  <ItemGroup>
+    <EFMigrations Include="API.Context.MyContext">
+      <Value>Data Source=SQL5054.site4now.net%3bInitial Catalog=DB_A6E898_store%3bUser Id=DB_A6E898_store_admin%3bPassword=asdqwe123</Value>
+    </EFMigrations>
+  </ItemGroup>
+</Project>

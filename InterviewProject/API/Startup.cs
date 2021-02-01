@@ -35,6 +35,11 @@ namespace API
             services.AddDbContext<MyContext>(options => options.UseSqlServer(Configuration.GetConnectionString("myConn")));
             services.AddScoped<RoleRepository>();
             services.AddScoped<UserRepository>();
+            services.AddScoped<ProductCategoryRepo>();
+            services.AddScoped<ProductRepo>();
+            services.AddScoped<TransactionItemRepo>();
+            services.AddScoped<TransactionRepo>();
+            services.AddScoped<CartRepo>();
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {
                 options.RequireHttpsMetadata = false;
